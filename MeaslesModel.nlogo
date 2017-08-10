@@ -6,18 +6,19 @@ turtles-own [will_vaccinate ; This is a true/false value determining if they wil
             vaccinated      ; This shows whether the agent was vaccinated when they were born
             time_infected   ; The number of days the agent has been infected and contagious
             age             ; The current age in years of this agent
-            contacts]       ; The number of turtles this agent has come into contact with in the last day.
+            contacts
+            agents_infected]       ; The number of turtles this agent has come into contact with in the last day.
 
-globals [seed opinion_change]
+globals [seed opinion_change average_infections]
 
 to setup
   clear-all
-  reset-ticks
   set seed new-seed
   random-seed seed
   set opinion_change 0
+  set average_infections [0 0]
   ask patches [set pcolor black]
-  let num_infected round (initial_infected * initial_population * .01)
+  let num_vaccinated round (initial_vaccinated * initial_population * .01)
   let num_will_vaccinate round (initial_will_vaccinate * initial_population * .01)
 
   ;Create all agents so that they are initially in the suseptible group
@@ -28,10 +29,12 @@ to setup
     set will_vaccinate false
     set age 0
     set contacts 0
-    if (num_infected > 0) [set-infected set num_infected (num_infected - 1)] ; If we still need to create the initial infected group add this agent to infected
+    if (num_vaccinated > 0) [set vaccinated true set-removed set num_vaccinated (num_vaccinated - 1)] ; If we still need to create the initial infected group add this agent to infected
     if (num_will_vaccinate > 0) [set will_vaccinate true set num_will_vaccinate (num_will_vaccinate - 1)] ; If we still need to create agents who will vaccinate their children do so
   ]
+  ask n-of initial_infected susceptible_group [set-infected]
   setup-ages
+  reset-ticks
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,7 +131,7 @@ to infect
       forward 1
       set contacts contacts + count turtles-here
       if breed = infected_group [
-        ask other turtles-here with [breed = susceptible_group] [if infection_chance_per_contact > random-float 1 [set-infected]]
+        ask other turtles-here with [breed = susceptible_group] [if infection_chance_per_contact > random-float 1 [set-infected ask myself [set agents_infected agents_infected + 1]]]
       ]
     ]
   ]
@@ -161,8 +164,19 @@ to set-susceptible
 end
 
 to set-removed
+  if breed = infected_group
+  [
+    set average_infections replace-item 0 average_infections (item 0 average_infections + agents_infected)
+    set average_infections replace-item 1 average_infections (item 1 average_infections + 1)
+  ]
   set breed removed_group
   set color green
+end
+
+to-report get-average-infections
+  ifelse item 1 average_infections != 0
+  [report (item 0 average_infections / item 1 average_infections)]
+  [report 0]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -194,9 +208,9 @@ ticks
 
 SLIDER
 514
-116
-723
 149
+723
+182
 ticks_contagious
 ticks_contagious
 1
@@ -209,9 +223,9 @@ HORIZONTAL
 
 SLIDER
 514
-150
-723
 183
+723
+216
 death_age
 death_age
 1
@@ -224,9 +238,9 @@ HORIZONTAL
 
 SLIDER
 515
-220
-724
 253
+724
+286
 vaccine_morbidity
 vaccine_morbidity
 0
@@ -239,9 +253,9 @@ HORIZONTAL
 
 SLIDER
 515
-255
-724
 288
+724
+321
 infection_morbidity
 infection_morbidity
 0
@@ -254,9 +268,9 @@ HORIZONTAL
 
 SLIDER
 516
-290
-724
 323
+724
+356
 behavior_sensitivity
 behavior_sensitivity
 0
@@ -276,7 +290,7 @@ initial_population
 initial_population
 2
 10000
-2500.0
+5000.0
 1
 1
 agents
@@ -284,9 +298,9 @@ HORIZONTAL
 
 SLIDER
 514
-82
-723
 115
+723
+148
 initial_will_vaccinate
 initial_will_vaccinate
 0
@@ -362,17 +376,17 @@ initial_infected
 initial_infected
 0
 100
-60.0
+1.0
 1
 1
-%
+agents
 HORIZONTAL
 
 SLIDER
 517
-324
-724
 357
+724
+390
 sample_rate
 sample_rate
 1
@@ -424,14 +438,14 @@ PENS
 
 SLIDER
 517
-358
-724
 391
+724
+424
 steps_per_time
 steps_per_time
 0
 100
-10.0
+8.0
 1
 1
 NIL
@@ -439,14 +453,14 @@ HORIZONTAL
 
 SLIDER
 517
-393
-725
 426
+725
+459
 infection_chance_per_contact
 infection_chance_per_contact
 0
 1
-0.13
+0.1
 .001
 1
 NIL
@@ -454,9 +468,9 @@ HORIZONTAL
 
 SLIDER
 515
-185
-723
 218
+723
+251
 ticks_per_year
 ticks_per_year
 01
@@ -483,9 +497,9 @@ PLOT
 399
 1311
 775
-Number of opinion changes since start
-NIL
-NIL
+Average Number of Infections per Infected
+Ticks
+Agetns Infected
 0.0
 10.0
 0.0
@@ -494,7 +508,7 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -13345367 true "" "plot opinion_change"
+"Average" 1.0 0 -13345367 true "" "plot get-average-infections"
 
 PLOT
 1315
@@ -514,6 +528,32 @@ true
 PENS
 "will Vaccinate" 1.0 0 -13840069 true "" "plot count turtles with [will_vaccinate = true]"
 "won't vaccinate" 1.0 0 -2674135 true "" "plot count turtles with [will_vaccinate = false]"
+
+SLIDER
+514
+81
+723
+114
+initial_vaccinated
+initial_vaccinated
+0
+100
+10.0
+1
+1
+%
+HORIZONTAL
+
+MONITOR
+732
+224
+935
+269
+Average Infections Created
+get-average-infections
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

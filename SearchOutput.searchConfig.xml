@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+<bsearchVersionNumber>1.02</bsearchVersionNumber>
+<modelInfo>
+<modelFile>C:\Users\Peter\Documents\GitHub\MeaslesTransmissionModel\MeaslesModel.nlogo</modelFile>
+<modelSetupCommands>setup</modelSetupCommands>
+<modelStepCommands>go</modelStepCommands>
+<modelStopCondition>count infected_group = 0</modelStopCondition>
+<modelStepLimit>100</modelStepLimit>
+<modelMetricReporter>opinion_change</modelMetricReporter>
+<modelMeasureIf>true</modelMeasureIf>
+</modelInfo>
+<fitnessInfo>
+<fitnessMinimized>false</fitnessMinimized>
+<fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+<fitnessSamplingReplications>10</fitnessSamplingReplications>
+<fitnessCombineReplications>MEAN</fitnessCombineReplications>
+</fitnessInfo>
+<searchSpace>
+<paramSpec>["ticks_contagious" 14]</paramSpec>
+<paramSpec>["death_age" 64]</paramSpec>
+<paramSpec>["vaccine_morbidity" [0 0.01 1]]</paramSpec>
+<paramSpec>["infection_morbidity" [0 0.01 1]]</paramSpec>
+<paramSpec>["behavior_sensitivity" [0 0.01 1]]</paramSpec>
+<paramSpec>["initial_population" 2500]</paramSpec>
+<paramSpec>["initial_will_vaccinate" 50]</paramSpec>
+<paramSpec>["initial_infected" 1]</paramSpec>
+<paramSpec>["sample_rate" 1]</paramSpec>
+<paramSpec>["steps_per_time" 11]</paramSpec>
+<paramSpec>["infection_chance_per_contact" .100]</paramSpec>
+<paramSpec>["ticks_per_year" 365]</paramSpec>
+<paramSpec>["initial_vaccinated" [0 1 5]]</paramSpec>
+</searchSpace>
+<searchMethod type="StandardGA">
+<searchMethodParameter name="mutation-rate" value="0.03"/>
+<searchMethodParameter name="population-size" value="50"/>
+<searchMethodParameter name="crossover-rate" value="0.7"/>
+<searchMethodParameter name="population-model" value="generational"/>
+<searchMethodParameter name="tournament-size" value="3"/>
+</searchMethod>
+<chromosomeRepresentation type="GrayBinaryChromosome"/>
+<caching>true</caching>
+<evaluationLimit>10000</evaluationLimit>
+<bestCheckingNumReplications>1</bestCheckingNumReplications>
+</search>
