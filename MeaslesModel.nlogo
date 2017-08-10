@@ -9,13 +9,14 @@ turtles-own [will_vaccinate ; This is a true/false value determining if they wil
             contacts
             agents_infected]       ; The number of turtles this agent has come into contact with in the last day.
 
-globals [seed opinion_change average_infections]
+globals [seed opinion_change average_infections days]
 
 to setup
   clear-all
   set seed new-seed
   random-seed seed
   set opinion_change 0
+  set days 0
   set average_infections [0 0]
   ask patches [set pcolor black]
   let num_vaccinated round (initial_vaccinated * initial_population * .01)
@@ -56,14 +57,22 @@ end
 
 to go
   ask turtles [set contacts 0] ; Reset number of contacts
-  let number_births death ; Kill all turtles who are past the death age and return the number that has been killed
-  create-children number_births ; Create the same number of turtles that have been killed
+  if (days mod ticks_per_year = 0 and days > 0)
+  [
+    ask turtles
+    [
+      set age age + 1
+    ]
+    let number_births death ; Kill all turtles who are past the death age and return the number that has been killed
+    create-children number_births ; Create the same number of turtles that have been killed
+  ]
+
   if (ticks mod sample_rate = 0) [compare-strategy] ; Compare and possibly change strategies
   infect ; Move and infect agents
   immunize ; Check for any turtles who have past the infection period.
-  ask turtles [if (ticks mod ticks_per_year = 0) [set age age + 1]]
+  set days days + 1
   tick
-  ;if (count infected_group = 0) [stop]
+  if (count infected_group = 0) [skip-years]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -149,6 +158,21 @@ to immunize
     set time_infected (time_infected + 1)
     if (time_infected >= ticks_contagious) [set-removed]
   ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; This function skips to the next generation of the model without changing the opinions and characteristics
+; of the current generation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+to skip-years
+  repeat years_to_skip
+  [
+    ask turtles [set age age + 1]
+    let number_births death
+    create-children number_births
+    set days days + ticks_per_year
+  ]
+  ask n-of initial_infected susceptible_group [set-infected]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -562,6 +586,21 @@ get-average-infections
 17
 1
 11
+
+SLIDER
+517
+500
+724
+533
+years_to_skip
+years_to_skip
+0
+100
+20.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
