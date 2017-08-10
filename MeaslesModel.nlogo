@@ -29,8 +29,10 @@ to setup
     set will_vaccinate false
     set age 0
     set contacts 0
-    if (num_vaccinated > 0) [set vaccinated true set-removed set num_vaccinated (num_vaccinated - 1)] ; If we still need to create the initial infected group add this agent to infected
-    if (num_will_vaccinate > 0) [set will_vaccinate true set num_will_vaccinate (num_will_vaccinate - 1)] ; If we still need to create agents who will vaccinate their children do so
+    ; If we still need to create the initial infected group add this agent to infected
+    if (num_vaccinated > 0) [set vaccinated true set-removed set num_vaccinated (num_vaccinated - 1)]
+    ; If we still need to create agents who will be vaccinated
+    if (num_will_vaccinate > 0) [set will_vaccinate true set num_will_vaccinate (num_will_vaccinate - 1)]
   ]
   ask n-of initial_infected susceptible_group [set-infected]
   setup-ages
@@ -75,6 +77,7 @@ to-report death
   [
     set death_count death_count + 1
     die
+    print "dead"
   ]
   report death_count
 end
@@ -172,6 +175,11 @@ to set-removed
   set breed removed_group
   set color green
 end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; This is a helper function that returns the current recoreded average of infections each inefected agent
+; will create
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to-report get-average-infections
   ifelse item 1 average_infections != 0
@@ -290,7 +298,7 @@ initial_population
 initial_population
 2
 10000
-5000.0
+2500.0
 1
 1
 agents
@@ -445,7 +453,7 @@ steps_per_time
 steps_per_time
 0
 100
-8.0
+11.0
 1
 1
 NIL
