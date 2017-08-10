@@ -5,7 +5,6 @@ breed [removed_group removed]
 turtles-own [will_vaccinate ; This is a true/false value determining if they will or will not vaccinate thier offspring
             vaccinated      ; This shows whether the agent was vaccinated when they were born
             time_infected   ; The number of days the agent has been infected and contagious
-            age             ; The current age in years of this agent
             contacts
             agents_infected]       ; The number of turtles this agent has come into contact with in the last day.
 
@@ -27,7 +26,6 @@ to setup
     set color white
     set vaccinated false
     set will_vaccinate false
-    set age 0
     set contacts 0
     ; If we still need to create the initial infected group add this agent to infected
     if (num_vaccinated > 0) [set vaccinated true set-removed set num_vaccinated (num_vaccinated - 1)]
@@ -35,72 +33,16 @@ to setup
     if (num_will_vaccinate > 0) [set will_vaccinate true set num_will_vaccinate (num_will_vaccinate - 1)]
   ]
   ask n-of initial_infected susceptible_group [set-infected]
-  setup-ages
   reset-ticks
 end
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Create an even or near even distribution of ages among the agents so that we have an evenly aged population
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to setup-ages
-  let curr_age 1
-  repeat (death_age - 1)
-  [
-    ifelse (count turtles with [age = 0]  >= count turtles / (death_age - 1))
-    [ask n-of (count turtles / (death_age - 1))  turtles with [age = 0] [set age curr_age]]
-    [ask turtles with [age = 0] [set age curr_age]]
-    set curr_age curr_age + 1
-  ]
-end
-
-
 to go
   ask turtles [set contacts 0] ; Reset number of contacts
-  let number_births death ; Kill all turtles who are past the death age and return the number that has been killed
-  create-children number_births ; Create the same number of turtles that have been killed
   if (ticks mod sample_rate = 0) [compare-strategy] ; Compare and possibly change strategies
   infect ; Move and infect agents
   immunize ; Check for any turtles who have past the infection period.
-  ask turtles [if (ticks mod ticks_per_year = 0) [set age age + 1]]
   tick
   ;if (count infected_group = 0) [stop]
-end
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Kill all turtles who are over the age specified by the user. This will happend every tick and will remove
-; every agent passed the age threshold regardless of other factors. This also returns the number of turtles
-; killed so that the population can be kept constant
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to-report death
-  let death_count 0
-  ask turtles with [age = death_age]
-  [
-    set death_count death_count + 1
-    die
-    print "dead"
-  ]
-  report death_count
-end
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Create new turtles to replace the ones previously killed by old age. This will create new turtles and either
-; add them to the susceptible group or add them to the removed group depending on their parents preference for
-; vaccination
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to create-children [number_births]
-  ask n-of number_births turtles
-  [
-
-    hatch-susceptible_group 1
-    [
-      setxy random-xcor random-ycor
-      set color white
-      set vaccinated ([will_vaccinate] of myself)
-      set will_vaccinate ([will_vaccinate] of myself)
-      set age 0
-      if (vaccinated = true) [set-removed]
-    ]
-  ]
 end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -230,25 +172,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-514
-183
-723
-216
-death_age
-death_age
-1
-100
-64.0
-1
-1
-years
-HORIZONTAL
-
-SLIDER
 515
-253
+184
 724
-286
+217
 vaccine_morbidity
 vaccine_morbidity
 0
@@ -261,9 +188,9 @@ HORIZONTAL
 
 SLIDER
 515
-288
+219
 724
-321
+252
 infection_morbidity
 infection_morbidity
 0
@@ -276,9 +203,9 @@ HORIZONTAL
 
 SLIDER
 516
-323
+254
 724
-356
+287
 behavior_sensitivity
 behavior_sensitivity
 0
@@ -392,9 +319,9 @@ HORIZONTAL
 
 SLIDER
 517
-357
+288
 724
-390
+321
 sample_rate
 sample_rate
 1
@@ -446,9 +373,9 @@ PENS
 
 SLIDER
 517
-391
+322
 724
-424
+355
 steps_per_time
 steps_per_time
 0
@@ -461,9 +388,9 @@ HORIZONTAL
 
 SLIDER
 517
-426
+357
 725
-459
+390
 infection_chance_per_contact
 infection_chance_per_contact
 0
@@ -472,21 +399,6 @@ infection_chance_per_contact
 .001
 1
 NIL
-HORIZONTAL
-
-SLIDER
-515
-218
-723
-251
-ticks_per_year
-ticks_per_year
-01
-1000
-365.0
-1
-1
-ticks
 HORIZONTAL
 
 MONITOR
